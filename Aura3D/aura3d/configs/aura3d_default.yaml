@@ -1,10 +1,10 @@
 # Aura-3D default configuration
 model:
   encoder:
-    backbone: dinov2_vitb14          # dinov2_vits14 | dinov2_vitb14 | resnet50
+    backbone: dinov2_vitb14 # dinov2_vits14 | dinov2_vitb14 | resnet50
     pretrained: true
     out_dim: 768
-    num_ref_views: 4                  # supports 1..4 reference images
+    num_ref_views: 4 # supports 1..4 reference images
     cross_view_attn_layers: 2
     freeze_backbone: false
 
@@ -12,26 +12,26 @@ model:
     flame_model_path: third_party/flame_pytorch/data/FLAME2020/generic_model.pkl
     n_shape: 100
     n_exp: 50
-    n_pose: 6                          # global rot + jaw
+    n_pose: 6 # global rot + jaw
     use_face_contour: false
 
   decoder:
     # Predicts per-FLAME-vertex (or per-triangle) Gaussian parameter offsets
-    type: uv_decoder                   # uv_decoder | mlp_decoder
+    type: uv_decoder # uv_decoder | mlp_decoder
     feature_dim: 128
     uv_resolution: 256
-    n_gaussians_per_triangle: 1        # GaussianAvatars-style binding
+    n_gaussians_per_triangle: 1 # GaussianAvatars-style binding
     predict_attrs:
-      - position_offset                # delta xyz in triangle local frame
-      - scale                          # log-space
-      - rotation                       # quaternion
-      - color                          # SH degree 0 (or RGB)
+      - position_offset # delta xyz in triangle local frame
+      - scale # log-space
+      - rotation # quaternion
+      - color # SH degree 0 (or RGB)
       - opacity
 
   eye_branch:
     enabled: true
-    eyeball_radius: 0.012              # meters, FLAME canonical scale
-    use_gerr: true                     # explicit rigid rotation + MLP residual
+    eyeball_radius: 0.012 # meters, FLAME canonical scale
+    use_gerr: true # explicit rigid rotation + MLP residual
     residual_mlp_hidden: [128, 128]
 
   face_deform_mlp:
@@ -42,11 +42,11 @@ model:
   renderer:
     sh_degree: 1
     bg_color: [0.0, 0.0, 0.0]
-    use_egnr: false                    # EGNR training-only; off at inference
+    use_egnr: false # EGNR training-only; off at inference
     egnr_train_only: true
 
 training:
-  stage: 1                             # 1 overfit | 2 cross-subject | 3 in-the-wild
+  stage: 1 # 1 overfit | 2 cross-subject | 3 in-the-wild
   batch_size: 1
   num_ref_views: 4
   lr_encoder: 1.0e-5
