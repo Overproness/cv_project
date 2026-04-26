@@ -54,6 +54,7 @@ training:
   lr_deform: 1.0e-4
   lr_gaussian_attrs: 1.0e-3
   steps: 200000
+  log_every: 50
   losses:
     l1: 1.0
     ssim: 0.2
@@ -65,5 +66,7 @@ training:
 data:
   dataset: nersemble
   root: data/nersemble
+  synthetic: false # auto-falls-back to synthetic if root is missing
+  num_workers: 0
   image_size: 512
   views_per_frame: 8

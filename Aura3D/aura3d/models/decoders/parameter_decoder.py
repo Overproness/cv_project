@@ -43,10 +43,7 @@ class UVParameterDecoder(nn.Module):
 
         # Triangle UV centroids in [0, 1]^2; registered as a buffer so it
         # follows .to(device). Can be set later via `set_triangle_uvs`.
-        if triangle_uv_centroids is not None:
-            self.register_buffer("tri_uv", triangle_uv_centroids)
-        else:
-            self.tri_uv = None
+        self.register_buffer("tri_uv", triangle_uv_centroids, persistent=False)
 
         # Project token feature to a low-res spatial grid, then upsample.
         self.token_to_grid = nn.Linear(in_dim, feature_dim * 16 * 16)
@@ -75,7 +72,10 @@ class UVParameterDecoder(nn.Module):
             self.head_rot.bias[3] = 1.0   # identity quaternion
 
     def set_triangle_uvs(self, tri_uv: torch.Tensor) -> None:
-        self.register_buffer("tri_uv", tri_uv.clamp(0.0, 1.0))
+        # Re-assign the buffer in place; persistent=False mirrors __init__.
+        self.tri_uv = tri_uv.clamp(0.0, 1.0).to(
+            device=next(self.parameters()).device,
+        )
 
     def forward(self, identity_feat: torch.Tensor) -> GaussianAttrOffsets:
         """identity_feat: (B, C) global identity vector from the encoder."""
