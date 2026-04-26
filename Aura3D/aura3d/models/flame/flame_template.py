@@ -51,19 +51,44 @@ class FLAMECanonicalTemplate(nn.Module):
         self.register_buffer("canonical_verts", verts[0])           # (V, 3)
         self.register_buffer("faces", self.flame.faces_tensor.long())  # (F, 3)
 
-        # Eye-region triangles. FLAME ships eye vertex indices; we mark a
-        # triangle as "eye" if any of its vertices is in the eye set.
-        eye_vidx = self._load_eye_vertex_indices()
-        face_mask = torch.zeros(self.faces.shape[0], dtype=torch.bool)
-        for i in range(3):
-            face_mask |= torch.isin(self.faces[:, i], eye_vidx)
-        self.register_buffer("eye_face_mask", face_mask)
+        # Eye-region triangles, separated into left/right so GERR can
+        # rotate each eyeball around its own center. Replace the loader
+        # below with the indices shipped in `flame_static_embedding.pkl`.
+        left_v, right_v = self._load_eye_vertex_indices()
+        self.register_buffer("left_eye_vidx", left_v)
+        self.register_buffer("right_eye_vidx", right_v)
+
+        def _tri_mask(vidx: torch.Tensor) -> torch.Tensor:
+            m = torch.zeros(self.faces.shape[0], dtype=torch.bool)
+            for i in range(3):
+                m |= torch.isin(self.faces[:, i], vidx)
+            return m
+
+        left_mask = _tri_mask(left_v)
+        right_mask = _tri_mask(right_v)
+        self.register_buffer("left_eye_face_mask", left_mask)
+        self.register_buffer("right_eye_face_mask", right_mask)
+        self.register_buffer("eye_face_mask", left_mask | right_mask)
 
     @staticmethod
-    def _load_eye_vertex_indices() -> torch.Tensor:
-        # Placeholder: replace with the vertex indices shipped with the
-        # FLAME asset bundle (e.g. `flame_static_embedding.pkl` -> eye_idx).
-        return torch.tensor([], dtype=torch.long)
+    def _load_eye_vertex_indices() -> tuple[torch.Tensor, torch.Tensor]:
+        """Return (left_eye_vidx, right_eye_vidx) as long tensors.
+
+        TODO: load from `flame_static_embedding.pkl` once the FLAME asset
+        bundle is in place. Returning empty tensors keeps construction
+        functional for unit tests / dry-runs.
+        """
+        empty = torch.tensor([], dtype=torch.long)
+        return empty, empty
+
+    def eye_centers(self, verts: torch.Tensor) -> torch.Tensor:
+        """(B, V, 3) -> (B, 2, 3) world-space [left, right] eye centers."""
+        b = verts.shape[0]
+        if self.left_eye_vidx.numel() == 0 or self.right_eye_vidx.numel() == 0:
+            return torch.zeros(b, 2, 3, device=verts.device, dtype=verts.dtype)
+        left = verts[:, self.left_eye_vidx].mean(dim=1)
+        right = verts[:, self.right_eye_vidx].mean(dim=1)
+        return torch.stack([left, right], dim=1)
 
     @property
     def num_vertices(self) -> int:
