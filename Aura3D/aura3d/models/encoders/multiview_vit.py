@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 @dataclass
@@ -64,6 +65,12 @@ class MultiViewViTEncoder(nn.Module):
 
     def _extract_tokens(self, imgs: torch.Tensor) -> torch.Tensor:
         """imgs: (B*V, 3, H, W) -> (B*V, N_patch, C)."""
+        # DINOv2 requires H and W to be multiples of patch_size (14).
+        h, w = imgs.shape[-2:]
+        pad_h = (14 - h % 14) % 14
+        pad_w = (14 - w % 14) % 14
+        if pad_h > 0 or pad_w > 0:
+            imgs = F.pad(imgs, (0, pad_w, 0, pad_h))
         feats = self.backbone.forward_features(imgs)
         # DINOv2 returns dict with 'x_norm_patchtokens' and 'x_norm_clstoken'.
         return feats["x_norm_patchtokens"]

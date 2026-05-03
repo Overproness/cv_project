@@ -74,6 +74,14 @@ class Aura3DModel(nn.Module):
             n_gaussians_per_triangle=dec_cfg["n_gaussians_per_triangle"],
         )
 
+        # Wire UV centroids into the decoder so it can sample the UV feature
+        # map at the correct per-triangle positions.
+        # For real FLAME: ideally use proper UV atlas centroids (Task 3).
+        # For now / synthetic mode: use uniform random UVs in [0,1]² so the
+        # pipeline is functional end-to-end from the first run.
+        tri_uvs = torch.rand(self.flame.num_faces, 2)
+        self.decoder.set_triangle_uvs(tri_uvs)
+
         self.face_deform = FaceDeformMLP(
             identity_dim=enc_cfg["out_dim"],
             expr_dim=deform_cfg["expr_cond_dim"],

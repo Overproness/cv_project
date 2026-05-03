@@ -68,5 +68,5 @@ data:
   root: data/nersemble
   synthetic: false # auto-falls-back to synthetic if root is missing
   num_workers: 0
-  image_size: 512
+  image_size: 518  # must be a multiple of DINOv2 patch-size 14 (37×14=518)
   views_per_frame: 8

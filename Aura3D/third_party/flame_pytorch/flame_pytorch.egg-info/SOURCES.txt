@@ -1,0 +1,8 @@
+setup.py
+flame_pytorch/__init__.py
+flame_pytorch/flame.py
+flame_pytorch.egg-info/PKG-INFO
+flame_pytorch.egg-info/SOURCES.txt
+flame_pytorch.egg-info/dependency_links.txt
+flame_pytorch.egg-info/requires.txt
+flame_pytorch.egg-info/top_level.txt

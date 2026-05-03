@@ -66,11 +66,12 @@ class GaussianRenderer(nn.Module):
             campos=cam.camera_center,
             prefiltered=False,
             debug=False,
+            antialiasing=False,
         )
         rasterizer = GaussianRasterizer(raster_settings=settings)
 
         screenspace_pts = torch.zeros_like(means3D, requires_grad=True)
-        rgb, radii = rasterizer(
+        result = rasterizer(
             means3D=means3D,
             means2D=screenspace_pts,
             shs=None,
@@ -80,4 +81,9 @@ class GaussianRenderer(nn.Module):
             rotations=rotations,
             cov3D_precomp=None,
         )
-        return {"rgb": rgb, "radii": radii, "screenspace_pts": screenspace_pts}
+        # Newer diff-gaussian-rasterization returns (rgb, radii, depth);
+        # older versions return (rgb, radii). Unpack defensively.
+        rgb, radii = result[0], result[1]
+        depth = result[2] if len(result) > 2 else None
+        return {"rgb": rgb, "radii": radii, "depth": depth,
+                "screenspace_pts": screenspace_pts}

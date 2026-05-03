@@ -1,3 +1,14 @@
 .venv/
 __pycache__/
 *.pyc
+.env
+
+# Large third-party clones (gaussian-splatting, DECA etc.)
+Aura3D/third_party/gaussian-splatting/
+third_party/DECA/
+# FLAME model assets (manually downloaded, not in repo)
+Aura3D/third_party/flame_pytorch/data/FLAME2020/*.pkl
+# Training runs / checkpoints
+Aura3D/runs/
+# Conda env (lives on D drive)
+/mnt/d/envs/
