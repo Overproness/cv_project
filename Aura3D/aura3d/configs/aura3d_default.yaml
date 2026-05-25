@@ -71,5 +71,5 @@ data:
   root: /mnt/d/GitHub/cv_project/data/nersemble
   synthetic: false
   num_workers: 0
-  image_size: 518  # must be a multiple of DINOv2 patch-size 14 (37×14=518)
+  image_size: 518 # must be a multiple of DINOv2 patch-size 14 (37×14=518)
   views_per_frame: 8
