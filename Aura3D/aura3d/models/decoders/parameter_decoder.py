@@ -42,8 +42,9 @@ class UVParameterDecoder(nn.Module):
         self.feature_dim = feature_dim
 
         # Triangle UV centroids in [0, 1]^2; registered as a buffer so it
-        # follows .to(device). Can be set later via `set_triangle_uvs`.
-        self.register_buffer("tri_uv", triangle_uv_centroids, persistent=False)
+        # follows .to(device) AND is saved in state_dict. Can be set later
+        # via `set_triangle_uvs`.
+        self.register_buffer("tri_uv", triangle_uv_centroids, persistent=True)
 
         # Project token feature to a low-res spatial grid, then upsample.
         self.token_to_grid = nn.Linear(in_dim, feature_dim * 16 * 16)

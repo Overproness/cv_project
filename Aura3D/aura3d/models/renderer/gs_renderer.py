@@ -45,7 +45,9 @@ class GaussianRenderer(nn.Module):
 
         assert g.xyz.shape[0] == 1, "Renderer expects batch size 1 (per-view)."
         means3D = g.xyz[0]
-        scales = torch.exp(g.scale[0])
+        # Clamp to a minimum physical scale (~0.1 mm) and a maximum (~1 m)
+        # so Gaussians never shrink to zero or blow up to cover the whole image.
+        scales = torch.exp(g.scale[0]).clamp(1e-4, 1.0)
         rotations = g.rotation[0]                  # already unit-norm
         opacities = torch.sigmoid(g.opacity[0])
         colors = g.color[0]                        # treated as precomputed RGB

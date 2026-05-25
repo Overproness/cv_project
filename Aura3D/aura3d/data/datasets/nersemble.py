@@ -78,9 +78,13 @@ class NeRSemblePhase1Dataset(Dataset):
 
         self._dm_cache = {}
         dm = NeRSembleDataManager(str(self.root))
-        all_participants = dm.list_participants()
+        # list_participants() returns ints; normalise to zero-padded strings so
+        # Path arithmetic (self.root / pid / ...) works correctly.
+        all_participants = [f"{p:03d}" for p in dm.list_participants()]
         if participants is None:
             participants = all_participants[:3]
+        # Accept both int and str inputs from callers.
+        participants = [f"{int(p):03d}" for p in participants]
         self.participants = [p for p in participants if p in all_participants]
         if not self.participants:
             raise RuntimeError(f"No requested participants found in {self.root}")
@@ -107,7 +111,7 @@ class NeRSemblePhase1Dataset(Dataset):
         from nersemble_data.data.nersemble_data import (  # type: ignore
             NeRSembleParticipantDataManager,
         )
-        m = NeRSembleParticipantDataManager(str(self.root), pid)
+        m = NeRSembleParticipantDataManager(str(self.root), int(pid))
         self._dm_cache[pid] = m
         return m
 
@@ -146,7 +150,8 @@ class NeRSemblePhase1Dataset(Dataset):
 
     # -------------------------------------------------------------- IO helpers
     def _load_image(self, pdm, seq: str, cam: str, t: int) -> torch.Tensor:
-        img = pdm.load_image(seq, cam, t, apply_color_correction=True)  # HWC uint8
+        img = pdm.load_image(seq, cam, t, as_uint8=True,
+                             apply_color_correction=False)  # HWC uint8
         return self._to_tensor(img)
 
     def _to_tensor(self, img_np: np.ndarray) -> torch.Tensor:
@@ -155,7 +160,8 @@ class NeRSemblePhase1Dataset(Dataset):
         h_target = self.image_size
         if img_np.shape[0] != h_target or img_np.shape[1] != h_target:
             img_np = cv2.resize(img_np, (h_target, h_target), interpolation=cv2.INTER_AREA)
-        t = torch.from_numpy(img_np).float() / 255.0
+        # img_np is uint8 [0,255] from load_image(as_uint8=True)
+        t = torch.from_numpy(img_np.astype('float32')) / 255.0
         return t.permute(2, 0, 1).contiguous()
 
     def _load_flame(self, pid: str, seq: str, t: int) -> dict:
@@ -192,8 +198,9 @@ class NeRSemblePhase1Dataset(Dataset):
             w2c[2, 3] = 1.0  # 1m in front of head
             return K, w2c
         calib = pdm.load_camera_calibration()
-        K = torch.from_numpy(calib.intrinsics).float()
-        w2c = torch.from_numpy(calib.world_2_cam[cam]).float()
+        import numpy as np
+        K = torch.from_numpy(np.array(calib.intrinsics).astype('float32'))
+        w2c = torch.from_numpy(np.array(calib.world_2_cam[cam]).astype('float32'))
         # Rescale K to the resized image.
         # NeRSemble shipping resolution is 3208x2200; assume original w=3208.
         scale = self.image_size / 3208.0

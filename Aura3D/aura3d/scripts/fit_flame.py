@@ -17,6 +17,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 
 def _build_deca(device: str):
@@ -49,20 +50,30 @@ def main() -> None:
     out_dir = Path(args.root) / args.participant / "flame_tracking" / args.sequence
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    pdm = NeRSembleParticipantDataManager(args.root, args.participant)
+    pdm = NeRSembleParticipantDataManager(args.root, int(args.participant))
     cams = pdm.list_cameras(args.sequence)
     ref_cam = args.ref_camera or cams[len(cams) // 2]
 
     deca = _build_deca(args.device)
 
+    n_written = 0
     for t in range(args.max_timesteps):
         try:
             img_np = pdm.load_image(args.sequence, ref_cam, t,
-                                     apply_color_correction=True)
-        except Exception:
+                                     apply_color_correction=False)
+        except (IndexError, EOFError, StopIteration):
+            # Video ran out of frames
             break
-        img = torch.from_numpy(img_np).permute(2, 0, 1).float() / 255.0
+        except Exception as e:
+            print(f"  WARNING: could not load frame t={t}: {e}")
+            break
+        img = torch.from_numpy(img_np).permute(2, 0, 1).float()
+        # load_image with as_uint8=False already returns [0,1] floats
+        if img.max() > 1.5:
+            img = img / 255.0
         img = img.unsqueeze(0).to(args.device)
+        # DECA ResNet encoder expects 224x224 face crops
+        img = F.interpolate(img, size=(224, 224), mode='bilinear', align_corners=False)
         with torch.no_grad():
             codedict = deca.encode(img)
 
@@ -75,10 +86,11 @@ def main() -> None:
             # an external gaze estimator (xgaze / mpiifacegaze) later.
             gaze=np.zeros(2, dtype=np.float32),
         )
+        n_written += 1
         if t % 10 == 0:
             print(f"  fit t={t:04d}")
 
-    print(f"Wrote {args.max_timesteps} frames to {out_dir}")
+    print(f"Wrote {n_written} frames to {out_dir}")
 
 
 if __name__ == "__main__":

@@ -79,7 +79,15 @@ class Aura3DModel(nn.Module):
         # For real FLAME: ideally use proper UV atlas centroids (Task 3).
         # For now / synthetic mode: use uniform random UVs in [0,1]² so the
         # pipeline is functional end-to-end from the first run.
-        tri_uvs = torch.rand(self.flame.num_faces, 2)
+        # Use a fixed-seed generator so the UV mapping is ALWAYS identical
+        # across training runs, eval scripts, and video scripts.  Without a
+        # fixed seed, each model instantiation samples different UVs from the
+        # decoder's UV feature map, making the trained weights useless at
+        # inference time (the root cause of the diagonal-stripe rendering
+        # artefact and blurry eval output).
+        _uv_gen = torch.Generator()
+        _uv_gen.manual_seed(0)
+        tri_uvs = torch.rand(self.flame.num_faces, 2, generator=_uv_gen)
         self.decoder.set_triangle_uvs(tri_uvs)
 
         self.face_deform = FaceDeformMLP(

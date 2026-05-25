@@ -9,7 +9,7 @@ model:
     freeze_backbone: false
 
   flame:
-    flame_model_path: third_party/flame_pytorch/data/FLAME2020/generic_model.pkl
+    flame_model_path: /mnt/d/GitHub/cv_project/Aura3D/third_party/flame_pytorch/data/FLAME2020/generic_model.pkl
     n_shape: 100
     n_exp: 50
     n_pose: 6 # global rot + jaw
@@ -55,6 +55,8 @@ training:
   lr_gaussian_attrs: 1.0e-3
   steps: 200000
   log_every: 50
+  ckpt_every: 500
+  max_grad_norm: 0.5
   losses:
     l1: 1.0
     ssim: 0.2
@@ -62,11 +64,12 @@ training:
     gaze: 0.1
     id: 0.05
     flame_reg: 1.0e-4
+    scale_reg: 1.0e-2
 
 data:
   dataset: nersemble
-  root: data/nersemble
-  synthetic: false # auto-falls-back to synthetic if root is missing
+  root: /mnt/d/GitHub/cv_project/data/nersemble
+  synthetic: false
   num_workers: 0
   image_size: 518  # must be a multiple of DINOv2 patch-size 14 (37×14=518)
   views_per_frame: 8

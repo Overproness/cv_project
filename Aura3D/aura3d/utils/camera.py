@@ -16,9 +16,9 @@ from ..models.renderer.gs_renderer import RenderCamera
 
 
 def _opencv_to_opengl_w2c(w2c: torch.Tensor) -> torch.Tensor:
-    """Flip Y and Z so the matrix matches OpenGL right-handed convention."""
-    flip = torch.diag(torch.tensor([1.0, -1.0, -1.0, 1.0], device=w2c.device, dtype=w2c.dtype))
-    return flip @ w2c
+    """diff-gaussian-rasterization uses OpenCV convention (Z+ forward, Y down).
+    NeRSemble also ships OpenCV-style cameras. No flip needed."""
+    return w2c
 
 
 def projection_matrix(fovx: float, fovy: float, znear: float = 0.01, zfar: float = 100.0,
@@ -47,8 +47,10 @@ def make_render_camera(
     w2c_gl = _opencv_to_opengl_w2c(w2c)
     # diff-gs uses row-major: viewmatrix is the transpose of the column-major
     # world->view used in standard CG textbooks.
+    # All matrices must be on the same device as the Gaussians (CUDA).
+    device = w2c_gl.device
     view = w2c_gl.T.contiguous()
-    proj = projection_matrix(fovx, fovy, device=K.device, dtype=K.dtype)
+    proj = projection_matrix(fovx, fovy, device=device, dtype=w2c_gl.dtype)
     full_proj = (proj @ w2c_gl).T.contiguous()
 
     # Camera center in world space.
