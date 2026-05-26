@@ -60,7 +60,8 @@ training:
   losses:
     l1: 1.0
     ssim: 0.2
-    lpips: 0.1
+    lpips: 0.05       # Phase 2: perceptual sharpness; start conservative
+    lpips_net: alex   # alex uses ~4x less memory than vgg at inference/backward
     gaze: 0.1
     id: 0.05
     flame_reg: 1.0e-4

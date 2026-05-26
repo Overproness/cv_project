@@ -69,7 +69,13 @@ class OverfitTrainer:
         )
 
         losses_cfg = train_cfg["losses"]
-        self.photo = PhotometricLoss(w_l1=losses_cfg["l1"], w_ssim=losses_cfg["ssim"])
+        self.photo = PhotometricLoss(
+            w_l1=losses_cfg["l1"],
+            w_ssim=losses_cfg["ssim"],
+            w_lpips=losses_cfg.get("lpips", 0.0),
+            lpips_net=losses_cfg.get("lpips_net", "vgg"),
+        )
+        self.photo = self.photo.to(device)
         self.w_scale_reg = losses_cfg.get("scale_reg", 1e-2)
 
         self.steps = train_cfg["steps"]
@@ -108,10 +114,10 @@ class OverfitTrainer:
         loss_dict = self.photo(pred, target[0])
 
         # Soft penalty on large Gaussian log-scales to prevent explosion.
-        # Penalises any log-scale above 1 (real scale > e ≈ 2.7 m, way too big
-        # for a face), leaving normal values in [-7, 1] completely untouched.
+        # Penalises any log-scale above -3 (real scale > 0.05 m, our renderer cap),
+        # leaving normal face-detail values in [-7, -3] completely untouched.
         gaussians = out["gaussians"]
-        scale_excess = gaussians.scale.clamp_min(1.0) - 1.0  # 0 when log_scale ≤ 1
+        scale_excess = gaussians.scale.clamp_min(-3.0) - (-3.0)  # 0 when log_scale ≤ -3
         scale_reg = self.w_scale_reg * scale_excess.pow(2).mean()
         loss_dict["scale_reg"] = scale_reg
         loss_dict["total"] = loss_dict["total"] + scale_reg
@@ -186,12 +192,16 @@ class OverfitTrainer:
             self.state.step += 1
 
             if self.state.step % self.log_every == 0:
+                lpips_str = (
+                    f"  lpips={loss['lpips'].item():.4f}" if "lpips" in loss else ""
+                )
                 print(
                     f"[step {self.state.step:>6}] "
                     f"total={loss['total'].item():.4f}  "
                     f"l1={loss['l1'].item():.4f}  "
                     f"ssim={loss['ssim'].item():.4f}  "
-                    f"scale_reg={loss['scale_reg'].item():.5f}",
+                    f"scale_reg={loss['scale_reg'].item():.5f}"
+                    f"{lpips_str}",
                     flush=True,
                 )
                 if loss["total"].item() < self.state.best_loss:
