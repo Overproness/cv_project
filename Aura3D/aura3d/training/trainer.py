@@ -117,7 +117,7 @@ class OverfitTrainer:
         # Penalises any log-scale above -3 (real scale > 0.05 m, our renderer cap),
         # leaving normal face-detail values in [-7, -3] completely untouched.
         gaussians = out["gaussians"]
-        scale_excess = gaussians.scale.clamp_min(-3.0) - (-3.0)  # 0 when log_scale ≤ -3
+        scale_excess = gaussians.scale.clamp_min(-1.897) - (-1.897)  # 0 when log_scale ≤ log(0.15m)
         scale_reg = self.w_scale_reg * scale_excess.pow(2).mean()
         loss_dict["scale_reg"] = scale_reg
         loss_dict["total"] = loss_dict["total"] + scale_reg

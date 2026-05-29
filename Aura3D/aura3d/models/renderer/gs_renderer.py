@@ -47,11 +47,11 @@ class GaussianRenderer(nn.Module):
         means3D = g.xyz[0]
         # Clamp physical scale to a reasonable range:
         #   min 0.1 mm  → prevents degenerate zero-size Gaussians
-        #   max 5 cm    → allows sharper fine detail than the Phase-1 1.0m cap
+        #   max 15 cm   → relaxed from 5cm; allows hair/neck/forehead coverage
         #                 while still preventing cover-the-whole-image explosion.
         #   The soft scale_reg loss in the trainer provides gradient signal back
         #   through log-scale; this hard clamp is belt-and-suspenders only.
-        scales = torch.exp(g.scale[0]).clamp(1e-4, 0.05)
+        scales = torch.exp(g.scale[0]).clamp(1e-4, 0.15)
         rotations = g.rotation[0]                  # already unit-norm
         opacities = torch.sigmoid(g.opacity[0])
         colors = g.color[0]                        # treated as precomputed RGB
