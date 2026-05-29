@@ -29,11 +29,11 @@ Phase 2 introduced LPIPS perceptual loss and tighter Gaussian scale constraints 
 
 Phase 2 targets three specific weaknesses identified in the Phase 1 conclusions:
 
-| Objective                                  | Rationale                                                                          |
-| ------------------------------------------ | ---------------------------------------------------------------------------------- |
-| Add LPIPS perceptual loss                  | L1+SSIM alone converge to blurry means; perceptual loss drives high-frequency detail |
-| Tighten scale clamp (from 1.0 m → 0.15 m) | Phase 1 explosion fix used 1.0 m, which allows Gaussians far too large for a face  |
-| Maintain training stability on 6 GB VRAM  | LPIPS compute cost must be managed to avoid OOM on the available hardware          |
+| Objective                                 | Rationale                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------ |
+| Add LPIPS perceptual loss                 | L1+SSIM alone converge to blurry means; perceptual loss drives high-frequency detail |
+| Tighten scale clamp (from 1.0 m → 0.15 m) | Phase 1 explosion fix used 1.0 m, which allows Gaussians far too large for a face    |
+| Maintain training stability on 6 GB VRAM  | LPIPS compute cost must be managed to avoid OOM on the available hardware            |
 
 ---
 
@@ -53,8 +53,8 @@ Added AlexNet-based LPIPS to `PhotometricLoss`. Key implementation choices:
 losses:
   l1: 1.0
   ssim: 0.2
-  lpips: 0.05      # conservative weight — perceptual sharpness signal
-  lpips_net: alex  # alex = 4× less VRAM than vgg
+  lpips: 0.05 # conservative weight — perceptual sharpness signal
+  lpips_net: alex # alex = 4× less VRAM than vgg
   scale_reg: 1.0e-2
 ```
 
@@ -81,6 +81,7 @@ scale_reg = self.w_scale_reg * scale_excess.pow(2).mean()
 **Root cause:** VGG-based LPIPS on 518 × 518 images required ~300 MB of VRAM on top of the already-full 6 GB budget.
 
 **Fix (two changes):**
+
 1. Switched `lpips_net` from `vgg` → `alex` (AlexNet uses ~4× less feature memory)
 2. Downsampled both `pred` and `target` to 256 × 256 via `F.interpolate` before the LPIPS forward pass
 
@@ -91,11 +92,13 @@ scale_reg = self.w_scale_reg * scale_excess.pow(2).mean()
 ## 5. Bug: Scale Clamp Too Tight → Metric Regression (Resolved)
 
 **Symptom:** Phase 2a evaluation at step 181,000 showed regression on all metrics vs Phase 1:
+
 - SSIM: 0.7007 vs 0.7379 (−0.037)
 - PSNR: 20.24 dB vs 22.06 dB (−1.82 dB)
 - LPIPS: 0.5201 vs 0.5156 (essentially flat — LPIPS signal not helping)
 
 **Root cause:** The 0.05 m (5 cm) maximum scale is physically too small for peripheral face regions. Hair, neck, forehead, and clothing require larger Gaussians to achieve coverage without requiring extremely dense initialisation. With the hard 5 cm cap:
+
 - Peripheral regions are consistently under-reconstructed (black/dark gaps)
 - The decoder learns to avoid peripheral regions since they always incur loss
 - PSNR drops because average pixel error over large dark gaps is high
@@ -103,13 +106,15 @@ scale_reg = self.w_scale_reg * scale_excess.pow(2).mean()
 
 **Fix (applied May 29, Phase 2b):**
 
-*`aura3d/models/renderer/gs_renderer.py`* — relaxed clamp from 0.05 m → 0.15 m:
+_`aura3d/models/renderer/gs_renderer.py`_ — relaxed clamp from 0.05 m → 0.15 m:
+
 ```python
 # Phase 2b: max 15cm — covers hair/neck while preventing explosion
 scales = torch.exp(g.scale[0]).clamp(1e-4, 0.15)
 ```
 
-*`aura3d/training/trainer.py`* — scale_reg threshold updated to match `log(0.15) = −1.897`:
+_`aura3d/training/trainer.py`_ — scale_reg threshold updated to match `log(0.15) = −1.897`:
+
 ```python
 # Phase 2b: penalise log-scales above log(0.15m)
 scale_excess = gaussians.scale.clamp_min(-1.897) - (-1.897)
@@ -124,12 +129,12 @@ scale_reg = self.w_scale_reg * scale_excess.pow(2).mean()
 
 Training ran May 26–29 from step 144,500 to 181,100 (approximately 3 days).
 
-| Phase                        | Steps           | Observations                                                             |
-| ---------------------------- | --------------- | ------------------------------------------------------------------------ |
-| LPIPS OOM crash              | ~144,500        | VGG + 518px input → OOM; fixed with AlexNet + 256px downsample           |
-| Recovery after LPIPS restart | 144,550–148,000 | Loss fell 0.34→0.10, LPIPS 0.77→0.47                                    |
+| Phase                        | Steps           | Observations                                                                |
+| ---------------------------- | --------------- | --------------------------------------------------------------------------- |
+| LPIPS OOM crash              | ~144,500        | VGG + 518px input → OOM; fixed with AlexNet + 256px downsample              |
+| Recovery after LPIPS restart | 144,550–148,000 | Loss fell 0.34→0.10, LPIPS 0.77→0.47                                        |
 | LPIPS improvement plateau    | 148,000–181,100 | LPIPS oscillating 0.38–0.65; best singles at 0.377 (steps 162,400, 173,550) |
-| Final Phase 2a step          | 181,100         | total=0.125, l1=0.0508, ssim=0.2498, scale_reg=0.00003, lpips=0.4850    |
+| Final Phase 2a step          | 181,100         | total=0.125, l1=0.0508, ssim=0.2498, scale_reg=0.00003, lpips=0.4850        |
 
 Training was healthy throughout — no NaN/Inf losses, no explosion events, `scale_reg` never exceeded 0.00004 (danger threshold: >0.001).
 
@@ -175,18 +180,18 @@ Training resumed at step 181,000. Current step: ~181,150. Too early for a full e
 
 ## 8. Deliverables
 
-| Artifact                            | Location                                                         |
-| ----------------------------------- | ---------------------------------------------------------------- |
-| Phase 2a checkpoint (latest)        | `runs/stage1_real/latest.pt` (step 181,000)                      |
-| Phase 1 best checkpoint (unchanged) | `runs/stage1_real/best.pt` (step 139,400, loss 0.0557)           |
-| Phase 2a eval results               | `runs/stage1_real/eval_phase2/results.txt`                       |
-| Phase 2a eval frames (50 PNG)       | `runs/stage1_real/eval_phase2/frames/`                           |
-| Phase 1 eval results (baseline)     | `runs/stage1_real/eval/results.txt`                              |
-| Training log (Phase 1 + 2)          | `runs/stage1_real/train.log`                                     |
-| LPIPS loss implementation           | `aura3d/losses/photometric.py`                                   |
-| Scale clamp (Phase 2b: 0.15 m)      | `aura3d/models/renderer/gs_renderer.py`                          |
-| Scale reg threshold (Phase 2b)      | `aura3d/training/trainer.py`                                     |
-| Config (Phase 2)                    | `aura3d/configs/aura3d_default.yaml`                             |
+| Artifact                            | Location                                               |
+| ----------------------------------- | ------------------------------------------------------ |
+| Phase 2a checkpoint (latest)        | `runs/stage1_real/latest.pt` (step 181,000)            |
+| Phase 1 best checkpoint (unchanged) | `runs/stage1_real/best.pt` (step 139,400, loss 0.0557) |
+| Phase 2a eval results               | `runs/stage1_real/eval_phase2/results.txt`             |
+| Phase 2a eval frames (50 PNG)       | `runs/stage1_real/eval_phase2/frames/`                 |
+| Phase 1 eval results (baseline)     | `runs/stage1_real/eval/results.txt`                    |
+| Training log (Phase 1 + 2)          | `runs/stage1_real/train.log`                           |
+| LPIPS loss implementation           | `aura3d/losses/photometric.py`                         |
+| Scale clamp (Phase 2b: 0.15 m)      | `aura3d/models/renderer/gs_renderer.py`                |
+| Scale reg threshold (Phase 2b)      | `aura3d/training/trainer.py`                           |
+| Config (Phase 2)                    | `aura3d/configs/aura3d_default.yaml`                   |
 
 ---
 

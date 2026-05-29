@@ -8,11 +8,11 @@ A feed-forward neural system that reconstructs a photorealistic, fully-animatabl
 
 ## Key Results
 
-| Metric | Value | std |
-|--------|-------|-----|
-| SSIM ↑ | **0.7379** | ±0.044 |
-| PSNR ↑ | **22.06 dB** | ±1.38 |
-| LPIPS ↓ | **0.5156** | ±0.057 |
+| Metric  | Value        | std    |
+| ------- | ------------ | ------ |
+| SSIM ↑  | **0.7379**   | ±0.044 |
+| PSNR ↑  | **22.06 dB** | ±1.38  |
+| LPIPS ↓ | **0.5156**   | ±0.057 |
 
 Evaluated on 50 held-out frames from 3 NeRSemble subjects (step 139,400 best checkpoint).
 
@@ -85,21 +85,21 @@ ref_imgs (1–4)
 
 ### Two-Stream Design
 
-| Stream | Input conditioning | Method |
-|--------|-------------------|--------|
-| Face | FLAME expression (50) + pose (6) | 3-layer skip-MLP (256-dim) |
-| Eye | Gaze direction (3) | Rigid rotation (GERR) + residual MLP (128-dim) |
+| Stream | Input conditioning               | Method                                         |
+| ------ | -------------------------------- | ---------------------------------------------- |
+| Face   | FLAME expression (50) + pose (6) | 3-layer skip-MLP (256-dim)                     |
+| Eye    | Gaze direction (3)               | Rigid rotation (GERR) + residual MLP (128-dim) |
 
 ### Key Components
 
-| Component | Implementation |
-|-----------|---------------|
-| Encoder backbone | DINOv2-ViT-B/14 (768-dim patch tokens) |
-| Cross-view fusion | 2-layer `TransformerEncoder` (heads=8) |
-| Decoder | `Linear(768→128×16×16)` → 4× `ConvTranspose2d` → UV grid sample |
-| Rasterizer | INRIA `diff-gaussian-rasterization` (unmodified CUDA kernel) |
-| Face model | `flame-pytorch` (FLAME 2020, 100 shape + 50 expr coefficients) |
-| Eye rotation | Explicit rigid rotation around eyeball center (r=0.012 m) |
+| Component         | Implementation                                                  |
+| ----------------- | --------------------------------------------------------------- |
+| Encoder backbone  | DINOv2-ViT-B/14 (768-dim patch tokens)                          |
+| Cross-view fusion | 2-layer `TransformerEncoder` (heads=8)                          |
+| Decoder           | `Linear(768→128×16×16)` → 4× `ConvTranspose2d` → UV grid sample |
+| Rasterizer        | INRIA `diff-gaussian-rasterization` (unmodified CUDA kernel)    |
+| Face model        | `flame-pytorch` (FLAME 2020, 100 shape + 50 expr coefficients)  |
+| Eye rotation      | Explicit rigid rotation around eyeball center (r=0.012 m)       |
 
 ---
 
@@ -187,11 +187,11 @@ python -m aura3d.scripts.train_stage1_overfit \
     --synthetic --steps 100
 ```
 
-### Stage 2 — Cross-Subject Generalization *(future)*
+### Stage 2 — Cross-Subject Generalization _(future)_
 
 Requires full NeRSemble (220+ subjects) + Multiface dataset.
 
-### Stage 3 — In-the-Wild *(future)*
+### Stage 3 — In-the-Wild _(future)_
 
 Requires FaceScape + EG3D-synthesized data. Uses SimSwap + CodeFormer for 2D-supervised training.
 
@@ -203,16 +203,16 @@ All hyperparameters live in [`Aura3D/aura3d/configs/aura3d_default.yaml`](Aura3D
 
 Key settings:
 
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| `model.encoder.backbone` | `dinov2_vitb14` | Can swap to `dinov2_vits14` |
-| `model.encoder.num_ref_views` | `4` | Supports 1–4 reference images |
-| `model.decoder.uv_resolution` | `256` | UV feature map resolution |
-| `training.lr_encoder` | `1e-5` | Lower LR for pretrained ViT |
-| `training.lr_decoder` | `5e-4` | |
-| `training.max_grad_norm` | `0.5` | Gradient clipping |
-| `data.image_size` | `518` | Must be multiple of 14 (DINOv2 patch size) |
-| `training.losses.lpips` | `0.05` | Phase 2 perceptual loss weight |
+| Parameter                     | Value           | Notes                                      |
+| ----------------------------- | --------------- | ------------------------------------------ |
+| `model.encoder.backbone`      | `dinov2_vitb14` | Can swap to `dinov2_vits14`                |
+| `model.encoder.num_ref_views` | `4`             | Supports 1–4 reference images              |
+| `model.decoder.uv_resolution` | `256`           | UV feature map resolution                  |
+| `training.lr_encoder`         | `1e-5`          | Lower LR for pretrained ViT                |
+| `training.lr_decoder`         | `5e-4`          |                                            |
+| `training.max_grad_norm`      | `0.5`           | Gradient clipping                          |
+| `data.image_size`             | `518`           | Must be multiple of 14 (DINOv2 patch size) |
+| `training.losses.lpips`       | `0.05`          | Phase 2 perceptual loss weight             |
 
 ---
 
@@ -235,24 +235,24 @@ Phase 2 evaluation (with LPIPS loss) outputs go to `runs/stage1_real/eval_phase2
 
 ## Tech Stack
 
-| Component | Library |
-|-----------|---------|
-| Deep learning | PyTorch 2.5.1 |
-| ViT backbone | DINOv2 (torch.hub) |
+| Component       | Library                                              |
+| --------------- | ---------------------------------------------------- |
+| Deep learning   | PyTorch 2.5.1                                        |
+| ViT backbone    | DINOv2 (torch.hub)                                   |
 | 3DGS rasterizer | diff-gaussian-rasterization (INRIA CUDA, unmodified) |
-| Face model | flame-pytorch (FLAME 2020) |
-| 3D ops | pytorch3d |
-| Face tracker | DECA |
-| Perceptual loss | LPIPS (alex net) |
-| Dataset | NeRSemble |
+| Face model      | flame-pytorch (FLAME 2020)                           |
+| 3D ops          | pytorch3d                                            |
+| Face tracker    | DECA                                                 |
+| Perceptual loss | LPIPS (alex net)                                     |
+| Dataset         | NeRSemble                                            |
 
 ---
 
 ## References
 
-- **GazeGaussian:** Wei et al., *Gaze-Directed 3D Gaussian Splatting for Real-Time Gaze-Aware Rendering*, AAAI 2025
-- **GaussianAvatars:** Qian et al., *GaussianAvatars: Photorealistic Head Avatars with Rigged 3D Gaussians*, CVPR 2024
-- **3D Gaussian Splatting:** Kerbl et al., *3D Gaussian Splatting for Real-Time Radiance Field Rendering*, SIGGRAPH 2023
-- **NeRSemble:** Kirschstein et al., *NeRSemble: Multi-view Radiance Field Reconstruction of Human Heads*, SIGGRAPH 2023
-- **FLAME:** Li et al., *Learning a model of facial shape and expression from 4D scans*, SIGGRAPH Asia 2017
-- **DINOv2:** Oquab et al., *DINOv2: Learning Robust Visual Features without Supervision*, TMLR 2024
+- **GazeGaussian:** Wei et al., _Gaze-Directed 3D Gaussian Splatting for Real-Time Gaze-Aware Rendering_, AAAI 2025
+- **GaussianAvatars:** Qian et al., _GaussianAvatars: Photorealistic Head Avatars with Rigged 3D Gaussians_, CVPR 2024
+- **3D Gaussian Splatting:** Kerbl et al., _3D Gaussian Splatting for Real-Time Radiance Field Rendering_, SIGGRAPH 2023
+- **NeRSemble:** Kirschstein et al., _NeRSemble: Multi-view Radiance Field Reconstruction of Human Heads_, SIGGRAPH 2023
+- **FLAME:** Li et al., _Learning a model of facial shape and expression from 4D scans_, SIGGRAPH Asia 2017
+- **DINOv2:** Oquab et al., _DINOv2: Learning Robust Visual Features without Supervision_, TMLR 2024

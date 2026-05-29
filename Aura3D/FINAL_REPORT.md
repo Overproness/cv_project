@@ -24,20 +24,20 @@ This report is submitted at the project deadline after approximately **25 days o
 
 **Status summary:**
 
-| Synopsis Item                          | Status     | Notes                                                          |
-| -------------------------------------- | ---------- | -------------------------------------------------------------- |
-| WP1: FLAME binding + Gaussian init     | ✅ Done    | Per-triangle binding functional; eye-region separated          |
-| WP2: Multi-view ViT encoder            | ✅ Done    | DINOv2-ViT-B/14 + cross-view attention (2 layers)             |
-| WP3: UV-space parameter decoder        | ✅ Done    | Linear → 4×ConvTranspose2d → UV map, UV-seeded                 |
-| WP4: Face deformation MLP              | ✅ Done    | 3-layer skip-MLP, expr + pose conditioned                      |
-| WP5: Eye branch (GERR)                 | ✅ Done    | Rigid gaze rotation + residual MLP                             |
-| WP6: Training loop + losses            | ✅ Done    | L1 + SSIM + LPIPS; scale_reg; Adam; cosine LR                  |
-| WP7: NeRSemble dataloader              | ✅ Done    | 3 subjects, 2,400 samples; FLAME .npz integration              |
-| Stage 1: Per-subject overfit           | ✅ Done    | 184,450 steps; SSIM 0.7379, PSNR 22.06 dB, LPIPS 0.52         |
-| Stage 2: Cross-subject (30+ subjects)  | ❌ Not done| Requires dataset expansion + new training loop                 |
-| Stage 3: In-the-wild (FaceScape/EG3D)  | ❌ Not done| Deferred to future work                                        |
-| WP8: Real-time webcam driver ≥ 60 FPS  | ❌ Not done| Architecture supports it; not implemented                      |
-| WP9: Baselines + full metric suite     | ❌ Not done| Only SSIM/PSNR/LPIPS measured                                  |
+| Synopsis Item                         | Status      | Notes                                                 |
+| ------------------------------------- | ----------- | ----------------------------------------------------- |
+| WP1: FLAME binding + Gaussian init    | ✅ Done     | Per-triangle binding functional; eye-region separated |
+| WP2: Multi-view ViT encoder           | ✅ Done     | DINOv2-ViT-B/14 + cross-view attention (2 layers)     |
+| WP3: UV-space parameter decoder       | ✅ Done     | Linear → 4×ConvTranspose2d → UV map, UV-seeded        |
+| WP4: Face deformation MLP             | ✅ Done     | 3-layer skip-MLP, expr + pose conditioned             |
+| WP5: Eye branch (GERR)                | ✅ Done     | Rigid gaze rotation + residual MLP                    |
+| WP6: Training loop + losses           | ✅ Done     | L1 + SSIM + LPIPS; scale_reg; Adam; cosine LR         |
+| WP7: NeRSemble dataloader             | ✅ Done     | 3 subjects, 2,400 samples; FLAME .npz integration     |
+| Stage 1: Per-subject overfit          | ✅ Done     | 184,450 steps; SSIM 0.7379, PSNR 22.06 dB, LPIPS 0.52 |
+| Stage 2: Cross-subject (30+ subjects) | ❌ Not done | Requires dataset expansion + new training loop        |
+| Stage 3: In-the-wild (FaceScape/EG3D) | ❌ Not done | Deferred to future work                               |
+| WP8: Real-time webcam driver ≥ 60 FPS | ❌ Not done | Architecture supports it; not implemented             |
+| WP9: Baselines + full metric suite    | ❌ Not done | Only SSIM/PSNR/LPIPS measured                         |
 
 ### Best Metrics Achieved (Phase 1, step 139,400)
 
@@ -83,26 +83,26 @@ The synopsis posed four research questions. This report addresses the status of 
 
 ## 3. Related Work
 
-| Paper                               | Contribution to Aura-3D                                                                           |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **GazeGaussian** [Wei et al., 2025] | Two-stream face/eye architecture; GERR rigid rotation representation; EGNR training signal        |
-| **GaussianAvatars** [Qian et al., 2024] | FLAME-to-triangle Gaussian binding; local-frame rigid transform; per-triangle attribute MLP   |
-| **Kerbl et al.** [SIGGRAPH 2023]    | Foundational 3DGS representation; diff-gaussian-rasterization CUDA kernel used unchanged         |
-| **NeRSemble** [Kirschstein et al., 2023] | Primary training dataset; 16-camera multi-view video; FLAME tracking .npz annotations       |
-| **Liu et al.** [arXiv 2025]         | 2D-supervised training pipeline (SimSwap + CodeFormer) for in-the-wild data — planned for Stage 3 |
+| Paper                                    | Contribution to Aura-3D                                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **GazeGaussian** [Wei et al., 2025]      | Two-stream face/eye architecture; GERR rigid rotation representation; EGNR training signal        |
+| **GaussianAvatars** [Qian et al., 2024]  | FLAME-to-triangle Gaussian binding; local-frame rigid transform; per-triangle attribute MLP       |
+| **Kerbl et al.** [SIGGRAPH 2023]         | Foundational 3DGS representation; diff-gaussian-rasterization CUDA kernel used unchanged          |
+| **NeRSemble** [Kirschstein et al., 2023] | Primary training dataset; 16-camera multi-view video; FLAME tracking .npz annotations             |
+| **Liu et al.** [arXiv 2025]              | 2D-supervised training pipeline (SimSwap + CodeFormer) for in-the-wild data — planned for Stage 3 |
 
 ---
 
 ## 4. Research Gap Addressed
 
-| Gap (from Synopsis)               | Status in This Work                                                               |
-| --------------------------------- | --------------------------------------------------------------------------------- |
-| Per-subject optimisation required | ✅ Eliminated — single forward pass at inference, zero per-user optimisation      |
-| Multi-view studio capture needed  | ✅ 4 reference views used in training; architecture supports 1–4                  |
-| No cross-identity generalisation  | ⏳ Architecture designed for it; Stage 2 (30+ subjects) not yet trained           |
-| Gaze control missing or implicit  | ✅ GERR explicit rigid rotation + residual MLP implemented                        |
-| Inference too slow for real-time  | ⏳ Rasterizer is fast; full pipeline FPS not benchmarked yet                      |
-| In-the-wild images unsupported    | ⏳ Planned for Stage 3 (FaceScape + EG3D + SimSwap); not implemented              |
+| Gap (from Synopsis)               | Status in This Work                                                          |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| Per-subject optimisation required | ✅ Eliminated — single forward pass at inference, zero per-user optimisation |
+| Multi-view studio capture needed  | ✅ 4 reference views used in training; architecture supports 1–4             |
+| No cross-identity generalisation  | ⏳ Architecture designed for it; Stage 2 (30+ subjects) not yet trained      |
+| Gaze control missing or implicit  | ✅ GERR explicit rigid rotation + residual MLP implemented                   |
+| Inference too slow for real-time  | ⏳ Rasterizer is fast; full pipeline FPS not benchmarked yet                 |
+| In-the-wild images unsupported    | ⏳ Planned for Stage 3 (FaceScape + EG3D + SimSwap); not implemented         |
 
 ---
 
@@ -145,16 +145,16 @@ Reference images (V=4, 3, 518, 518)
 
 ### Module Implementation Details
 
-| Module               | Implementation                                             | Params   |
-| -------------------- | ---------------------------------------------------------- | -------- |
-| Encoder              | DINOv2-ViT-B/14, 2-layer cross-view Transformer (8 heads) | ~90M     |
-| Decoder              | Linear→4×ConvTranspose2d→UV map (seeded, persistent)       | ~5M      |
-| FLAME                | flame-pytorch, n_shape=100, n_exp=50, n_pose=6             | Fixed    |
-| FLAME Binding        | Per-triangle normal/tangent/bitangent local frame          | ~0       |
-| Face Deformation MLP | 3-layer skip-MLP [256,256,256], expr+pose conditioned      | ~400k    |
-| Eye Branch (GERR)    | Rigid gaze rotation matrix + 2-layer residual MLP [128,128]| ~100k    |
-| Renderer             | diff-gaussian-rasterization (CUDA, tile-based)             | 0        |
-| **Total trainable**  |                                                            | **~95M** |
+| Module               | Implementation                                              | Params   |
+| -------------------- | ----------------------------------------------------------- | -------- |
+| Encoder              | DINOv2-ViT-B/14, 2-layer cross-view Transformer (8 heads)   | ~90M     |
+| Decoder              | Linear→4×ConvTranspose2d→UV map (seeded, persistent)        | ~5M      |
+| FLAME                | flame-pytorch, n_shape=100, n_exp=50, n_pose=6              | Fixed    |
+| FLAME Binding        | Per-triangle normal/tangent/bitangent local frame           | ~0       |
+| Face Deformation MLP | 3-layer skip-MLP [256,256,256], expr+pose conditioned       | ~400k    |
+| Eye Branch (GERR)    | Rigid gaze rotation matrix + 2-layer residual MLP [128,128] | ~100k    |
+| Renderer             | diff-gaussian-rasterization (CUDA, tile-based)              | 0        |
+| **Total trainable**  |                                                             | **~95M** |
 
 ---
 
@@ -162,14 +162,14 @@ Reference images (V=4, 3, 518, 518)
 
 The synopsis defined six research objectives (RO1–RO6). This section reports the status of each.
 
-| RO | Objective (from Synopsis §2.5.1)                                                                        | Status       | Evidence                                                                                         |
-| -- | ------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------ |
-| 1  | Design and validate DINOv2-ViT-B/14 encoder with cross-view fusion producing stable 768-dim embedding  | ✅ Complete  | Encoder trains end-to-end; PSNR 22.06 dB confirms identity information is preserved             |
-| 2  | Develop UV-space CNN decoder mapping identity → per-triangle Gaussian attribute offsets, zero-init      | ✅ Complete  | UV seeding bug was the critical fix; zero-init confirmed at startup                              |
-| 3  | Implement FLAME-to-triangle Gaussian binding + face deformation MLP + GERR eye branch                  | ✅ Complete  | All three modules training; FLAME binding drives correct macro-scale animation                   |
-| 4  | Train the full pipeline in three stages (overfit → cross-subject → in-the-wild)                         | 🟡 Partial  | Stage 1 (overfit) complete at 184,450 steps. Stages 2 and 3 not started.                        |
-| 5  | Achieve ≥ 60 FPS animation at inference on a mid-range GPU                                              | ⏳ Pending  | Rasterizer alone can achieve this; full pipeline FPS not benchmarked                            |
-| 6  | Evaluate against GazeGaussian / GaussianAvatars with gaze error, SSIM, PSNR, LPIPS, FID, ID-sim        | 🟡 Partial  | SSIM, PSNR, LPIPS evaluated. Gaze error, FID, ID cosine similarity, baseline comparisons not done |
+| RO  | Objective (from Synopsis §2.5.1)                                                                      | Status      | Evidence                                                                                          |
+| --- | ----------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
+| 1   | Design and validate DINOv2-ViT-B/14 encoder with cross-view fusion producing stable 768-dim embedding | ✅ Complete | Encoder trains end-to-end; PSNR 22.06 dB confirms identity information is preserved               |
+| 2   | Develop UV-space CNN decoder mapping identity → per-triangle Gaussian attribute offsets, zero-init    | ✅ Complete | UV seeding bug was the critical fix; zero-init confirmed at startup                               |
+| 3   | Implement FLAME-to-triangle Gaussian binding + face deformation MLP + GERR eye branch                 | ✅ Complete | All three modules training; FLAME binding drives correct macro-scale animation                    |
+| 4   | Train the full pipeline in three stages (overfit → cross-subject → in-the-wild)                       | 🟡 Partial  | Stage 1 (overfit) complete at 184,450 steps. Stages 2 and 3 not started.                          |
+| 5   | Achieve ≥ 60 FPS animation at inference on a mid-range GPU                                            | ⏳ Pending  | Rasterizer alone can achieve this; full pipeline FPS not benchmarked                              |
+| 6   | Evaluate against GazeGaussian / GaussianAvatars with gaze error, SSIM, PSNR, LPIPS, FID, ID-sim       | 🟡 Partial  | SSIM, PSNR, LPIPS evaluated. Gaze error, FID, ID cosine similarity, baseline comparisons not done |
 
 ### Why Stages 2 and 3 Were Not Reached
 
@@ -185,12 +185,12 @@ Stage 1 was expected to take ~1 month (synopsis Gantt, June 2026 target). In pra
 
 **NeRSemble** [Kirschstein et al., SIGGRAPH 2023] — used as the primary training dataset as specified in the synopsis.
 
-| Subject | Sequence   | Cameras | Timesteps | Total Samples |
-| ------- | ---------- | ------- | --------- | ------------- |
-| 030     | EXP-2-eyes | 16      | 50        | 800           |
-| 038     | EXP-1-head | 16      | 50        | 800           |
-| 240     | EXP-1-head | 16      | 50        | 800           |
-| **Total** |          |         |           | **2,400**     |
+| Subject   | Sequence   | Cameras | Timesteps | Total Samples |
+| --------- | ---------- | ------- | --------- | ------------- |
+| 030       | EXP-2-eyes | 16      | 50        | 800           |
+| 038       | EXP-1-head | 16      | 50        | 800           |
+| 240       | EXP-1-head | 16      | 50        | 800           |
+| **Total** |            |         |           | **2,400**     |
 
 Only 3 of 220+ available subjects were used, as this is Stage 1 (per-subject overfit). Preprocessing applied: background normalisation, FLAME tracking via provided .npz annotations, camera calibration from dataset metadata. The full preprocessing pipeline from the synopsis (BiSeNet-V2 masking, DECA refitting, gaze normalization via ETH-XGaze protocol) was not applied — the NeRSemble dataset's pre-provided FLAME tracking was used directly, which is sufficient for Stage 1.
 
@@ -212,11 +212,11 @@ LPIPS uses AlexNet features evaluated on 256 × 256 downsampled inputs. Scale re
 
 $$\mathcal{L}_{scale} = \mathbb{E}\!\left[\max(0,\, \log s - \tau)^2\right]$$
 
-| Phase   | τ (threshold) | Max scale | Rationale                                         |
-| ------- | ------------- | --------- | ------------------------------------------------- |
-| Phase 1 | 0.0           | 1.0 m     | Conservative; prevents explosion                  |
-| Phase 2a| −3.0          | 5 cm      | Too tight — caused metric regression (see §10.6)  |
-| Phase 2b| −1.897        | 15 cm     | Fixed; training running; `scale_reg≈0`            |
+| Phase    | τ (threshold) | Max scale | Rationale                                        |
+| -------- | ------------- | --------- | ------------------------------------------------ |
+| Phase 1  | 0.0           | 1.0 m     | Conservative; prevents explosion                 |
+| Phase 2a | −3.0          | 5 cm      | Too tight — caused metric regression (see §10.6) |
+| Phase 2b | −1.897        | 15 cm     | Fixed; training running; `scale_reg≈0`           |
 
 Losses from the synopsis not implemented: gaze angular loss, identity cosine similarity regularisation. These require gaze ground-truth labels and a pre-trained face embedding network respectively — deferred to Stage 2.
 
@@ -241,18 +241,18 @@ May 29         — Phase 2b running, step ~184,450 (deadline reached)
 
 ### Loss Trajectory
 
-| Milestone                       | Step        | Total Loss | Notes                                         |
-| ------------------------------- | ----------- | ---------- | --------------------------------------------- |
-| Phase 1 start                   | ~2,550      | ~0.35      |                                               |
-| Phase 1 rapid improvement       | 20,000      | ~0.15      |                                               |
-| Phase 1 pre-explosion best      | 114,250     | 0.0614     |                                               |
-| Scale explosion (Bug 3)         | 134,050     | 0.62       | Rolled back to 0.0614; Bug 3 fixed            |
-| **Phase 1 best (best.pt)**      | **139,400** | **0.0557** | Evaluated: SSIM 0.7379, PSNR 22.06 dB        |
-| Phase 2a start (LPIPS added)    | 144,550     | 0.31       | LPIPS=0.77 on first step                      |
-| Phase 2a plateau                | 162,400     | ~0.09      | Best training LPIPS: 0.377                    |
-| Phase 2a final                  | 181,100     | 0.125      | Eval: SSIM 0.7007 (regression)                |
-| Phase 2b start (clamp relaxed)  | 181,050     | 0.144      | scale_reg=0.000; LPIPS=0.366                  |
-| Phase 2b current (deadline)     | ~184,450    | ~0.11      | scale_reg=0.000; LPIPS oscillating ~0.37–0.42 |
+| Milestone                      | Step        | Total Loss | Notes                                         |
+| ------------------------------ | ----------- | ---------- | --------------------------------------------- |
+| Phase 1 start                  | ~2,550      | ~0.35      |                                               |
+| Phase 1 rapid improvement      | 20,000      | ~0.15      |                                               |
+| Phase 1 pre-explosion best     | 114,250     | 0.0614     |                                               |
+| Scale explosion (Bug 3)        | 134,050     | 0.62       | Rolled back to 0.0614; Bug 3 fixed            |
+| **Phase 1 best (best.pt)**     | **139,400** | **0.0557** | Evaluated: SSIM 0.7379, PSNR 22.06 dB         |
+| Phase 2a start (LPIPS added)   | 144,550     | 0.31       | LPIPS=0.77 on first step                      |
+| Phase 2a plateau               | 162,400     | ~0.09      | Best training LPIPS: 0.377                    |
+| Phase 2a final                 | 181,100     | 0.125      | Eval: SSIM 0.7007 (regression)                |
+| Phase 2b start (clamp relaxed) | 181,050     | 0.144      | scale_reg=0.000; LPIPS=0.366                  |
+| Phase 2b current (deadline)    | ~184,450    | ~0.11      | scale_reg=0.000; LPIPS oscillating ~0.37–0.42 |
 
 ---
 
@@ -267,6 +267,7 @@ Six non-trivial bugs were encountered, diagnosed, and fixed over the course of t
 **Root cause:** `decoder.tri_uv` (the per-triangle UV centroid coordinates used to sample the decoder feature map) was registered as `persistent=False` and initialised with `torch.rand()` without a fixed seed. Every Python interpreter launch — training, evaluation, video rendering — generated a completely different random UV coordinate layout. The decoder's feature map was trained to encode face attributes at positions A, B, C, ... but evaluated at completely different positions A', B', C', ...
 
 **Fix:**
+
 ```python
 # In parameter_decoder.py
 tri_uvs = torch.rand(n_triangles, 2, generator=torch.Generator().manual_seed(0))
@@ -284,6 +285,7 @@ self.register_buffer("tri_uv", tri_uvs, persistent=True)  # saved in checkpoint
 **Root cause:** Camera intrinsic and extrinsic matrices (`K`, `w2c`) were loaded as CPU tensors from the dataset. `projection_matrix()` in `utils/camera.py` was hardcoded to construct its output on CPU, regardless of input device. The CUDA rasterizer requires all input tensors on the same CUDA device.
 
 **Fix:**
+
 ```python
 # In camera.py — infer output device from the camera matrix
 proj = torch.zeros(4, 4, dtype=w2c_gl.dtype, device=w2c_gl.device)
@@ -298,6 +300,7 @@ proj = torch.zeros(4, 4, dtype=w2c_gl.dtype, device=w2c_gl.device)
 **Root cause:** The renderer used `torch.exp(log_scale).clamp_min(1e-4)` — a lower bound only. With no upper bound, gradient accumulation caused log-scale values to grow unboundedly. Once a Gaussian's scale exceeded the image footprint, gradients became degenerate (all pixels equally covered → no spatial gradient signal), and the loss minimiser was stuck in a local mode of large-scale grey coverage.
 
 **Fix (two-layer protection):**
+
 1. Soft L2 penalty on log-scales above threshold τ (scale regularisation loss, weight 0.01)
 2. Hard upper clamp in the renderer: `torch.exp(log_scale).clamp(1e-4, 1.0)` (Phase 1)
 
@@ -322,6 +325,7 @@ proj = torch.zeros(4, 4, dtype=w2c_gl.dtype, device=w2c_gl.device)
 **Root cause:** The initial LPIPS implementation used VGG (the default) at the full 518 × 518 training resolution. VGG-based LPIPS at 518 × 518 requires approximately 300 MB of additional VRAM above the already-saturated 6 GB budget.
 
 **Fix:**
+
 1. Switch `lpips_net: vgg` → `lpips_net: alex` (AlexNet has ~4× fewer feature parameters than VGG)
 2. Downsample both `pred` and `target` to 256 × 256 via `F.interpolate` before the LPIPS forward pass (perceptual features are scale-insensitive at this range)
 
@@ -334,6 +338,7 @@ proj = torch.zeros(4, 4, dtype=w2c_gl.dtype, device=w2c_gl.device)
 **Symptom:** Phase 2a evaluation at step 181,000 showed regression on all three metrics vs Phase 1: SSIM −0.037, PSNR −1.82 dB, LPIPS flat (+0.005). The model trained with LPIPS loss was _worse_ than the Phase 1 model without it.
 
 **Root cause:** The 5 cm maximum Gaussian scale (introduced as Phase 2's tighter constraint) prevents Gaussians from being large enough to cover hair, neck, forehead, and clothing. These regions need splats 5–15 cm across. With only 5 cm available:
+
 - Peripheral regions are systematically under-reconstructed (appear as dark gaps)
 - The decoder learns to ignore periphery since it can never be covered within the constraint
 - PSNR falls because average pixel error over uncovered dark regions is high
@@ -342,6 +347,7 @@ proj = torch.zeros(4, 4, dtype=w2c_gl.dtype, device=w2c_gl.device)
 **Key diagnostic evidence:** Per-subject breakdown showed subjects 038 and 240 (full head, hair, neck) regressed −0.053 and −0.033 SSIM respectively, while subject 030 (eyes-only sequence, small face region) regressed only −0.022.
 
 **Fix:**
+
 ```python
 # gs_renderer.py — Phase 2b
 scales = torch.exp(g.scale[0]).clamp(1e-4, 0.15)  # was 0.05
@@ -370,21 +376,21 @@ Evaluated on 50 random samples (seed=42) across 3 subjects and both sequences.
 
 Same 50 samples, same seed.
 
-| Metric  | Mean         | Std    | vs Phase 1   | Direction |
-| ------- | ------------ | ------ | ------------ | --------- |
-| SSIM ↑  | 0.7007       | ±0.049 | −0.037       | ❌ Worse  |
-| PSNR ↑  | 20.24 dB     | ±2.28  | −1.82 dB     | ❌ Worse  |
-| LPIPS ↓ | 0.5201       | ±0.051 | +0.005       | ❌ Flat   |
+| Metric  | Mean     | Std    | vs Phase 1 | Direction |
+| ------- | -------- | ------ | ---------- | --------- |
+| SSIM ↑  | 0.7007   | ±0.049 | −0.037     | ❌ Worse  |
+| PSNR ↑  | 20.24 dB | ±2.28  | −1.82 dB   | ❌ Worse  |
+| LPIPS ↓ | 0.5201   | ±0.051 | +0.005     | ❌ Flat   |
 
 The regression was caused by Bug 10.6 (scale clamp too tight). Phase 2b training is ongoing with the fix applied.
 
 ### 11.3 Per-Subject Breakdown
 
-| Subject | Sequence   | SSIM P1 | SSIM P2a | Δ      | Interpretation                          |
-| ------- | ---------- | ------- | -------- | ------ | --------------------------------------- |
-| 030     | EXP-2-eyes | ~0.763  | 0.741    | −0.022 | Eye region is fine-scale; minor delta   |
-| 038     | EXP-1-head | ~0.713  | 0.660    | −0.053 | Hair + neck require larger Gaussians    |
-| 240     | EXP-1-head | ~0.726  | 0.693    | −0.033 | Same — confirms scale-clamp hypothesis  |
+| Subject | Sequence   | SSIM P1 | SSIM P2a | Δ      | Interpretation                         |
+| ------- | ---------- | ------- | -------- | ------ | -------------------------------------- |
+| 030     | EXP-2-eyes | ~0.763  | 0.741    | −0.022 | Eye region is fine-scale; minor delta  |
+| 038     | EXP-1-head | ~0.713  | 0.660    | −0.053 | Hair + neck require larger Gaussians   |
+| 240     | EXP-1-head | ~0.726  | 0.693    | −0.033 | Same — confirms scale-clamp hypothesis |
 
 ### 11.4 Phase 2b Status (at deadline)
 
@@ -396,13 +402,14 @@ Training is at step ~184,450. `scale_reg=0.00000` throughout (Gaussians within t
 
 Three GT vs PRED side-by-side comparison videos were rendered from `best.pt` (Phase 1):
 
-| Video                                 | Subject | Sequence   |
-| ------------------------------------- | ------- | ---------- |
-| `pid030_EXP-2-eyes_220700191.mp4`     | 030     | EXP-2-eyes |
-| `pid038_EXP-1-head_220700191.mp4`     | 038     | EXP-1-head |
-| `pid240_EXP-1-head_220700191.mp4`     | 240     | EXP-1-head |
+| Video                             | Subject | Sequence   |
+| --------------------------------- | ------- | ---------- |
+| `pid030_EXP-2-eyes_220700191.mp4` | 030     | EXP-2-eyes |
+| `pid038_EXP-1-head_220700191.mp4` | 038     | EXP-1-head |
+| `pid240_EXP-1-head_220700191.mp4` | 240     | EXP-1-head |
 
 **What the model reconstructs correctly:**
+
 - Overall head shape and position in world space
 - Skin tone and colour per subject
 - Hair colour and rough hair silhouette
@@ -411,6 +418,7 @@ Three GT vs PRED side-by-side comparison videos were rendered from `best.pt` (Ph
 - 3D consistency of head motion across sequences
 
 **What remains blurry / incorrect:**
+
 - All fine facial detail (pores, lip texture, eyelashes, individual hair strands)
 - Sharp eye highlights and iris texture
 - Wrinkle and crease geometry
@@ -433,17 +441,18 @@ The synopsis planned comparison against GazeGaussian, GaussianAvatars, and GazeN
 
 The table below shows the published baseline numbers from the synopsis alongside the best Aura-3D results achieved to date. Aura-3D's numbers are on the **per-subject overfit regime** (Stage 1), not the cross-identity generalisation regime the baselines use — this comparison is therefore **not apples-to-apples** and should be read as indicative only.
 
-| Method                                  | SSIM ↑     | PSNR ↑    | LPIPS ↓    | Gaze ↓  | FPS ↑    | Per-subject optim? |
-| --------------------------------------- | ---------- | --------- | ---------- | ------- | -------- | ------------------ |
-| STED [Zheng et al., 2020]               | 0.726      | 17.53     | 0.300      | 16.22°  | 18       | Yes                |
-| GazeNeRF [Ruzzi et al., 2023]           | 0.733      | 15.45     | 0.291      | 6.94°   | 46       | Yes                |
-| GaussianAvatars [Qian et al., 2024]     | 0.638      | 12.11     | 0.359      | 30.96°  | 91       | Yes                |
-| GazeGaussian [Wei et al., 2025]         | 0.823      | 18.73     | 0.216      | 6.62°   | 74       | Yes                |
-| **Aura-3D Stage 1 (best.pt, 3 subj.)**  | **0.7379** | **22.06** | **0.5156** | N/M     | N/M      | **No†**            |
+| Method                                 | SSIM ↑     | PSNR ↑    | LPIPS ↓    | Gaze ↓ | FPS ↑ | Per-subject optim? |
+| -------------------------------------- | ---------- | --------- | ---------- | ------ | ----- | ------------------ |
+| STED [Zheng et al., 2020]              | 0.726      | 17.53     | 0.300      | 16.22° | 18    | Yes                |
+| GazeNeRF [Ruzzi et al., 2023]          | 0.733      | 15.45     | 0.291      | 6.94°  | 46    | Yes                |
+| GaussianAvatars [Qian et al., 2024]    | 0.638      | 12.11     | 0.359      | 30.96° | 91    | Yes                |
+| GazeGaussian [Wei et al., 2025]        | 0.823      | 18.73     | 0.216      | 6.62°  | 74    | Yes                |
+| **Aura-3D Stage 1 (best.pt, 3 subj.)** | **0.7379** | **22.06** | **0.5156** | N/M    | N/M   | **No†**            |
 
 †_Aura-3D requires no per-subject optimisation at inference. The Stage 1 numbers are from an overfit run on 3 subjects and cannot be compared directly to the per-subject baselines above._
 
 **Key observations:**
+
 - Aura-3D's PSNR (22.06 dB) and SSIM (0.7379) exceed several per-subject baselines _despite_ being a feed-forward system — which is promising.
 - LPIPS (0.5156) is significantly worse than baselines (0.216–0.359). This is the primary quality gap — attributable to lack of ADC and the fact that baselines use subject-specific fine-tuning.
 - Cross-identity generalisation metrics cannot be provided at this time.
@@ -452,17 +461,17 @@ The table below shows the published baseline numbers from the synopsis alongside
 
 ## 14. Work Package Delivery Summary
 
-| WP  | Title                              | Delivered?   | Location                                            |
-| --- | ---------------------------------- | ------------ | --------------------------------------------------- |
-| WP1 | Gaussian Binding Infrastructure    | ✅ Yes       | `aura3d/models/gaussians/flame_binding.py`          |
-| WP2 | Multi-View Identity Encoder        | ✅ Yes       | `aura3d/models/encoders/`                           |
-| WP3 | UV-Space Parameter Decoder         | ✅ Yes       | `aura3d/models/decoders/parameter_decoder.py`       |
-| WP4 | Face Deformation Branch            | ✅ Yes       | `aura3d/models/deformation/deform_mlp.py`           |
-| WP5 | Eye Branch (GERR)                  | ✅ Yes       | `aura3d/models/eye/`                                |
-| WP6 | Training Loop + Losses             | ✅ Yes       | `aura3d/training/trainer.py`, `aura3d/losses/`      |
-| WP7 | NeRSemble Dataloader               | ✅ Yes (3 subj.)| `aura3d/data/datasets/nersemble.py`              |
-| WP8 | Real-Time Inference Driver ≥60 FPS | ❌ Not done  | Architecture supports it; script not implemented    |
-| WP9 | Evaluation + Baselines             | 🟡 Partial  | `aura3d/scripts/evaluate.py`; no baseline comparison|
+| WP  | Title                              | Delivered?       | Location                                             |
+| --- | ---------------------------------- | ---------------- | ---------------------------------------------------- |
+| WP1 | Gaussian Binding Infrastructure    | ✅ Yes           | `aura3d/models/gaussians/flame_binding.py`           |
+| WP2 | Multi-View Identity Encoder        | ✅ Yes           | `aura3d/models/encoders/`                            |
+| WP3 | UV-Space Parameter Decoder         | ✅ Yes           | `aura3d/models/decoders/parameter_decoder.py`        |
+| WP4 | Face Deformation Branch            | ✅ Yes           | `aura3d/models/deformation/deform_mlp.py`            |
+| WP5 | Eye Branch (GERR)                  | ✅ Yes           | `aura3d/models/eye/`                                 |
+| WP6 | Training Loop + Losses             | ✅ Yes           | `aura3d/training/trainer.py`, `aura3d/losses/`       |
+| WP7 | NeRSemble Dataloader               | ✅ Yes (3 subj.) | `aura3d/data/datasets/nersemble.py`                  |
+| WP8 | Real-Time Inference Driver ≥60 FPS | ❌ Not done      | Architecture supports it; script not implemented     |
+| WP9 | Evaluation + Baselines             | 🟡 Partial       | `aura3d/scripts/evaluate.py`; no baseline comparison |
 
 ---
 
@@ -470,40 +479,40 @@ The table below shows the published baseline numbers from the synopsis alongside
 
 ### Code
 
-| File                                          | Description                                              |
-| --------------------------------------------- | -------------------------------------------------------- |
-| `aura3d/models/aura3d_model.py`               | Top-level model: `encode_identity()` + `animate()`       |
-| `aura3d/models/encoders/`                     | DINOv2-ViT-B/14 + cross-view attention                  |
-| `aura3d/models/decoders/parameter_decoder.py` | UV-CNN Gaussian parameter decoder (UV-seeded, persistent)|
-| `aura3d/models/flame/`                        | FLAME interface + mesh utilities                         |
-| `aura3d/models/gaussians/flame_binding.py`    | Per-triangle local-frame Gaussian binding                |
-| `aura3d/models/deformation/deform_mlp.py`     | Face deformation MLP                                     |
-| `aura3d/models/eye/`                          | Eye branch: GERR + residual MLP                          |
-| `aura3d/models/renderer/gs_renderer.py`       | diff-gaussian-rasterization wrapper (clamp 0.15 m)       |
-| `aura3d/losses/photometric.py`               | L1 + SSIM + LPIPS (AlexNet, 256px downsample)            |
-| `aura3d/training/trainer.py`                  | Training loop, checkpointing, cosine LR, logging         |
-| `aura3d/utils/camera.py`                      | `projection_matrix()` with device-aware output           |
-| `aura3d/configs/aura3d_default.yaml`          | Full Phase 2 training config                             |
-| `aura3d/scripts/train_stage1_overfit.py`      | Training entrypoint                                      |
-| `aura3d/scripts/evaluate.py`                  | SSIM/PSNR/LPIPS eval with side-by-side PNG output        |
-| `aura3d/scripts/render_video.py`              | GT vs PRED video renderer                                |
-| `aura3d/scripts/plot_loss.py`                 | Loss curve plotter                                       |
+| File                                          | Description                                               |
+| --------------------------------------------- | --------------------------------------------------------- |
+| `aura3d/models/aura3d_model.py`               | Top-level model: `encode_identity()` + `animate()`        |
+| `aura3d/models/encoders/`                     | DINOv2-ViT-B/14 + cross-view attention                    |
+| `aura3d/models/decoders/parameter_decoder.py` | UV-CNN Gaussian parameter decoder (UV-seeded, persistent) |
+| `aura3d/models/flame/`                        | FLAME interface + mesh utilities                          |
+| `aura3d/models/gaussians/flame_binding.py`    | Per-triangle local-frame Gaussian binding                 |
+| `aura3d/models/deformation/deform_mlp.py`     | Face deformation MLP                                      |
+| `aura3d/models/eye/`                          | Eye branch: GERR + residual MLP                           |
+| `aura3d/models/renderer/gs_renderer.py`       | diff-gaussian-rasterization wrapper (clamp 0.15 m)        |
+| `aura3d/losses/photometric.py`                | L1 + SSIM + LPIPS (AlexNet, 256px downsample)             |
+| `aura3d/training/trainer.py`                  | Training loop, checkpointing, cosine LR, logging          |
+| `aura3d/utils/camera.py`                      | `projection_matrix()` with device-aware output            |
+| `aura3d/configs/aura3d_default.yaml`          | Full Phase 2 training config                              |
+| `aura3d/scripts/train_stage1_overfit.py`      | Training entrypoint                                       |
+| `aura3d/scripts/evaluate.py`                  | SSIM/PSNR/LPIPS eval with side-by-side PNG output         |
+| `aura3d/scripts/render_video.py`              | GT vs PRED video renderer                                 |
+| `aura3d/scripts/plot_loss.py`                 | Loss curve plotter                                        |
 
 ### Checkpoints and Outputs
 
-| Artifact                         | Location                                                   |
-| -------------------------------- | ---------------------------------------------------------- |
-| Phase 1 best checkpoint          | `runs/stage1_real/best.pt` (step 139,400, loss 0.0557)     |
-| Phase 2 latest checkpoint        | `runs/stage1_real/latest.pt` (step ~184,450)               |
-| Phase 1 eval results             | `runs/stage1_real/eval/results.txt`                        |
-| Phase 1 eval frames (50 PNG)     | `runs/stage1_real/eval/frames/`                            |
-| Phase 2a eval results            | `runs/stage1_real/eval_phase2/results.txt`                 |
-| Phase 2a eval frames (50 PNG)    | `runs/stage1_real/eval_phase2/frames/`                     |
-| Training log (Phase 1 + 2)       | `runs/stage1_real/train.log`                               |
-| Loss curve PNG                   | `runs/stage1_real/loss_curve.png`                          |
-| Video — subject 030              | `runs/stage1_real/videos/pid030_EXP-2-eyes_220700191.mp4`  |
-| Video — subject 038              | `runs/stage1_real/videos/pid038_EXP-1-head_220700191.mp4`  |
-| Video — subject 240              | `runs/stage1_real/videos/pid240_EXP-1-head_220700191.mp4`  |
+| Artifact                      | Location                                                  |
+| ----------------------------- | --------------------------------------------------------- |
+| Phase 1 best checkpoint       | `runs/stage1_real/best.pt` (step 139,400, loss 0.0557)    |
+| Phase 2 latest checkpoint     | `runs/stage1_real/latest.pt` (step ~184,450)              |
+| Phase 1 eval results          | `runs/stage1_real/eval/results.txt`                       |
+| Phase 1 eval frames (50 PNG)  | `runs/stage1_real/eval/frames/`                           |
+| Phase 2a eval results         | `runs/stage1_real/eval_phase2/results.txt`                |
+| Phase 2a eval frames (50 PNG) | `runs/stage1_real/eval_phase2/frames/`                    |
+| Training log (Phase 1 + 2)    | `runs/stage1_real/train.log`                              |
+| Loss curve PNG                | `runs/stage1_real/loss_curve.png`                         |
+| Video — subject 030           | `runs/stage1_real/videos/pid030_EXP-2-eyes_220700191.mp4` |
+| Video — subject 038           | `runs/stage1_real/videos/pid038_EXP-1-head_220700191.mp4` |
+| Video — subject 240           | `runs/stage1_real/videos/pid240_EXP-1-head_220700191.mp4` |
 
 ---
 
@@ -519,14 +528,15 @@ The table below shows the published baseline numbers from the synopsis alongside
 
 The most critical next step — directly addresses RQ1 and RO4.
 
-| Addition                          | Priority | Impact                                                                      |
-| --------------------------------- | -------- | --------------------------------------------------------------------------- |
-| Gaussian ADC (split + prune)      | P0       | Single biggest quality lever; enables sharp detail at fine scale            |
-| Expand to 30+ NeRSemble subjects  | P0       | Tests cross-identity generalisation — the core research claim               |
-| Cross-subject training loop       | P1       | New trainer: random identity sampling each step, forcing general encoding   |
-| Best-checkpoint by eval metrics   | P1       | Track SSIM/PSNR rather than LPIPS-inflated training loss                    |
+| Addition                         | Priority | Impact                                                                    |
+| -------------------------------- | -------- | ------------------------------------------------------------------------- |
+| Gaussian ADC (split + prune)     | P0       | Single biggest quality lever; enables sharp detail at fine scale          |
+| Expand to 30+ NeRSemble subjects | P0       | Tests cross-identity generalisation — the core research claim             |
+| Cross-subject training loop      | P1       | New trainer: random identity sampling each step, forcing general encoding |
+| Best-checkpoint by eval metrics  | P1       | Track SSIM/PSNR rather than LPIPS-inflated training loss                  |
 
 **ADC implementation plan:**
+
 ```python
 # In trainer._step() after loss.backward()
 # Every 1,000 steps:
@@ -574,17 +584,17 @@ The technical foundation is sound and the path to cross-identity generalisation 
 
 ## References
 
-1. Kerbl, B., et al. (2023). *3D Gaussian Splatting for Real-Time Radiance Field Rendering*. SIGGRAPH 2023.
-2. Qian, S., et al. (2024). *GaussianAvatars: Photorealistic Head Avatars with Rigged 3D Gaussians*. CVPR 2024.
-3. Wei, J., et al. (2025). *GazeGaussian: High-Fidelity Gaze Redirection with 3D Gaussian Splatting*. AAAI 2025.
-4. Kirschstein, T., et al. (2023). *NeRSemble: Multi-view Radiance Field Reconstruction of Human Heads*. SIGGRAPH 2023.
-5. Liu, et al. (2025). *A Controllable 3D Deepfake Generation Framework with Gaussian Splatting*. arXiv:2509.11624.
-6. Oquab, M., et al. (2024). *DINOv2: Learning Robust Visual Features without Supervision*. TMLR 2024.
-7. Li, T., et al. (2017). *Learning a Model of Facial Shape and Expression from 4D Scans*. SIGGRAPH Asia 2017. (FLAME)
-8. Feng, Y., et al. (2021). *Learning an Animatable Detailed 3D Face Model from In-The-Wild Images*. SIGGRAPH 2021. (DECA)
-9. Zhang, X., et al. (2020). *ETH-XGaze: A Large Scale Dataset for Gaze Estimation under Extreme Head Pose and Gaze Variation*. ECCV 2020.
-10. Zheng, Y., et al. (2020). *Self-Learning Transformations for Improving Gaze and Head Redirection*. NeurIPS 2020. (STED)
-11. Ruzzi, M., et al. (2023). *GazeNeRF: 3D-Aware Gaze Redirection with Neural Radiance Fields*. CVPR 2023.
+1. Kerbl, B., et al. (2023). _3D Gaussian Splatting for Real-Time Radiance Field Rendering_. SIGGRAPH 2023.
+2. Qian, S., et al. (2024). _GaussianAvatars: Photorealistic Head Avatars with Rigged 3D Gaussians_. CVPR 2024.
+3. Wei, J., et al. (2025). _GazeGaussian: High-Fidelity Gaze Redirection with 3D Gaussian Splatting_. AAAI 2025.
+4. Kirschstein, T., et al. (2023). _NeRSemble: Multi-view Radiance Field Reconstruction of Human Heads_. SIGGRAPH 2023.
+5. Liu, et al. (2025). _A Controllable 3D Deepfake Generation Framework with Gaussian Splatting_. arXiv:2509.11624.
+6. Oquab, M., et al. (2024). _DINOv2: Learning Robust Visual Features without Supervision_. TMLR 2024.
+7. Li, T., et al. (2017). _Learning a Model of Facial Shape and Expression from 4D Scans_. SIGGRAPH Asia 2017. (FLAME)
+8. Feng, Y., et al. (2021). _Learning an Animatable Detailed 3D Face Model from In-The-Wild Images_. SIGGRAPH 2021. (DECA)
+9. Zhang, X., et al. (2020). _ETH-XGaze: A Large Scale Dataset for Gaze Estimation under Extreme Head Pose and Gaze Variation_. ECCV 2020.
+10. Zheng, Y., et al. (2020). _Self-Learning Transformations for Improving Gaze and Head Redirection_. NeurIPS 2020. (STED)
+11. Ruzzi, M., et al. (2023). _GazeNeRF: 3D-Aware Gaze Redirection with Neural Radiance Fields_. CVPR 2023.
 
 ---
 
@@ -608,4 +618,3 @@ The technical foundation is sound and the path to cross-identity generalisation 
 | ViT          | Vision Transformer                                      |
 | VRAM         | Video Random Access Memory                              |
 | WP           | Work Package (from synopsis §3.2.1)                     |
-
