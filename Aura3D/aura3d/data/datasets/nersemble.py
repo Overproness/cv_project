@@ -49,7 +49,7 @@ class NeRSemblePhase1Dataset(Dataset):
         self,
         root: str,
         participants: list[str] | None = None,
-        sequences: list[str] | None = None,
+        sequences: list[str] | dict[str, list[str]] | None = None,
         num_ref_views: int = 4,
         image_size: int = 512,
         n_shape: int = 100,
@@ -87,7 +87,10 @@ class NeRSemblePhase1Dataset(Dataset):
         # Path arithmetic (self.root / pid / ...) works correctly.
         all_participants = [f"{p:03d}" for p in dm.list_participants()]
         if participants is None:
-            participants = all_participants[:3]
+            if isinstance(sequences, dict):
+                participants = list(sequences.keys())
+            else:
+                participants = all_participants[:3]
         # Accept both int and str inputs from callers.
         participants = [f"{int(p):03d}" for p in participants]
         self.participants = [p for p in participants if p in all_participants]
@@ -95,11 +98,21 @@ class NeRSemblePhase1Dataset(Dataset):
             raise RuntimeError(f"No requested participants found in {self.root}")
 
         self.index: list[tuple[str, str, int, str]] = []
+        missing_sequences: list[str] = []
         for pid in self.participants:
             pdm = self._participant_manager(pid)
-            seqs = sequences or pdm.list_sequences()[:1]
+            available_seqs = pdm.list_sequences()
+            if isinstance(sequences, dict):
+                seqs = sequences.get(pid) or sequences.get(str(int(pid))) or []
+            else:
+                seqs = sequences or [s for s in available_seqs if s != "BACKGROUND"][:1]
             for seq in seqs:
-                if seq not in pdm.list_sequences():
+                if seq not in available_seqs:
+                    missing_sequences.append(f"{pid}/{seq} (available: {available_seqs})")
+                    continue
+                images_dir = self.root / pid / "sequences" / seq / "images"
+                if not images_dir.exists():
+                    missing_sequences.append(f"{pid}/{seq} missing images dir: {images_dir}")
                     continue
                 cams = pdm.list_cameras(seq)
                 if len(cams) < num_ref_views + 1:
@@ -108,6 +121,9 @@ class NeRSemblePhase1Dataset(Dataset):
                 for t in range(min(max_timesteps, self._num_timesteps(pdm, seq, cams[0]))):
                     for target_cam in cams:
                         self.index.append((pid, seq, t, target_cam))
+        if not self.index:
+            details = "\n  ".join(missing_sequences) if missing_sequences else "No usable sequences."
+            raise RuntimeError(f"No NeRSemble samples found in {self.root}:\n  {details}")
 
     # ------------------------------------------------------------------ utils
     def _participant_manager(self, pid: str):
@@ -134,17 +150,20 @@ class NeRSemblePhase1Dataset(Dataset):
     def _build_synthetic_index(
         self,
         participants: list[str] | None,
-        sequences: list[str] | None,
+        sequences: list[str] | dict[str, list[str]] | None,
         max_timesteps: int,
     ) -> None:
         participants = participants or ["synthA", "synthB"]
-        sequences = sequences or ["EXP-1-head"]
+        if isinstance(sequences, dict):
+            seq_names = sorted({s for seqs in sequences.values() for s in seqs})
+        else:
+            seq_names = sequences or ["EXP-1-head"]
         cams = [f"cam{i:03d}" for i in range(16)]
         self.participants = participants
         self.index = [
             (p, s, t, c)
             for p in participants
-            for s in sequences
+            for s in seq_names
             for t in range(min(max_timesteps, 8))
             for c in cams
         ]

@@ -38,6 +38,8 @@ class OverfitTrainer:
         data_cfg = cfg["data"]
         self.dataset = NeRSemblePhase1Dataset(
             root=data_cfg["root"],
+            participants=data_cfg.get("participants"),
+            sequences=data_cfg.get("sequences"),
             num_ref_views=train_cfg["num_ref_views"],
             image_size=data_cfg["image_size"],
             n_shape=cfg["model"]["flame"]["n_shape"],

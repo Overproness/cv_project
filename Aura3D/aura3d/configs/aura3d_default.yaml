@@ -7,7 +7,7 @@ model:
     cross_view_attn_layers: 2
     freeze_backbone: false
   flame:
-    flame_model_path: ./Aura3D/third_party/flame_pytorch/data/FLAME2020/generic_model.pkl
+    flame_model_path: third_party/flame_pytorch/data/FLAME2020/generic_model.pkl
     n_shape: 100
     n_exp: 50
     n_pose: 6
@@ -68,7 +68,18 @@ training:
     scale_reg: 0.01
 data:
   dataset: nersemble
-  root: ./data/nersemble
+  root: ../data/nersemble
+  participants:
+  - '030'
+  - '038'
+  - '240'
+  sequences:
+    '030':
+    - EXP-2-eyes
+    '038':
+    - EXP-1-head
+    '240':
+    - EXP-1-head
   synthetic: false
   num_workers: 0
   image_size: 518
