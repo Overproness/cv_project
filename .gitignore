@@ -16,3 +16,6 @@ Aura3D/runs/
 data/
 *.pt
 runs/
+
+
+*.zip/

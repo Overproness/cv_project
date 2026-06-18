@@ -5,10 +5,9 @@ Phase-1 goal: overfit Aura-3D on 1-3 subjects, each with ~16 cameras and
 training sample: K of the 16 cameras are sampled as REFERENCE views (fed
 to the encoder) and one DIFFERENT camera is the target supervision view.
 
-This dataset depends on the `nersemble_data` package for IO. If that
-package is not installed (e.g. in CI / a dev laptop without the data),
-we fall back to a synthetic dataset with the exact same sample schema so
-the training pipeline can be smoke-tested end-to-end.
+This dataset depends on the `nersemble_data` package for IO. Synthetic data
+is only used when explicitly requested; missing real data raises an error so
+training cannot silently waste GPU on random images.
 
 NOTE: FLAME tracking parameters (shape/expr/pose) are not part of the
 raw NeRSemble release. Phase-1 expects them to live alongside the
@@ -64,7 +63,13 @@ class NeRSemblePhase1Dataset(Dataset):
         self.num_ref_views = num_ref_views
         self.image_size = image_size
         self.n_shape, self.n_exp, self.n_pose = n_shape, n_exp, n_pose
-        self.synthetic = synthetic or not self.root.exists()
+        self.synthetic = synthetic
+
+        if not self.synthetic and not self.root.exists():
+            raise FileNotFoundError(
+                f"NeRSemble root does not exist: {self.root}. "
+                "Fix data.root in the config or pass --synthetic for a smoke test."
+            )
 
         if self.synthetic:
             self._build_synthetic_index(participants, sequences, max_timesteps)
