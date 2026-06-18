@@ -1,58 +1,58 @@
-# Aura-3D default configuration
 model:
   encoder:
-    backbone: dinov2_vitb14 # dinov2_vits14 | dinov2_vitb14 | resnet50
+    backbone: dinov2_vitb14
     pretrained: true
     out_dim: 768
-    num_ref_views: 4 # supports 1..4 reference images
+    num_ref_views: 4
     cross_view_attn_layers: 2
     freeze_backbone: false
-
   flame:
-    flame_model_path: /mnt/d/GitHub/cv_project/Aura3D/third_party/flame_pytorch/data/FLAME2020/generic_model.pkl
+    flame_model_path: ./Aura3D/third_party/flame_pytorch/data/FLAME2020/generic_model.pkl
     n_shape: 100
     n_exp: 50
-    n_pose: 6 # global rot + jaw
+    n_pose: 6
     use_face_contour: false
-
   decoder:
-    # Predicts per-FLAME-vertex (or per-triangle) Gaussian parameter offsets
-    type: uv_decoder # uv_decoder | mlp_decoder
+    type: uv_decoder
     feature_dim: 128
     uv_resolution: 256
-    n_gaussians_per_triangle: 1 # GaussianAvatars-style binding
+    n_gaussians_per_triangle: 1
     predict_attrs:
-      - position_offset # delta xyz in triangle local frame
-      - scale # log-space
-      - rotation # quaternion
-      - color # SH degree 0 (or RGB)
-      - opacity
-
+    - position_offset
+    - scale
+    - rotation
+    - color
+    - opacity
   eye_branch:
     enabled: true
-    eyeball_radius: 0.012 # meters, FLAME canonical scale
-    use_gerr: true # explicit rigid rotation + MLP residual
-    residual_mlp_hidden: [128, 128]
-
+    eyeball_radius: 0.012
+    use_gerr: true
+    residual_mlp_hidden:
+    - 128
+    - 128
   face_deform_mlp:
-    hidden: [256, 256, 256]
+    hidden:
+    - 256
+    - 256
+    - 256
     expr_cond_dim: 50
     pose_cond_dim: 6
-
   renderer:
     sh_degree: 1
-    bg_color: [0.0, 0.0, 0.0]
-    use_egnr: false # EGNR training-only; off at inference
+    bg_color:
+    - 0.0
+    - 0.0
+    - 0.0
+    use_egnr: false
     egnr_train_only: true
-
 training:
-  stage: 1 # 1 overfit | 2 cross-subject | 3 in-the-wild
+  stage: 1
   batch_size: 1
   num_ref_views: 4
-  lr_encoder: 1.0e-5
-  lr_decoder: 5.0e-4
-  lr_deform: 1.0e-4
-  lr_gaussian_attrs: 1.0e-3
+  lr_encoder: 1.0e-05
+  lr_decoder: 0.0005
+  lr_deform: 0.0001
+  lr_gaussian_attrs: 0.001
   steps: 200000
   log_every: 50
   ckpt_every: 500
@@ -60,17 +60,16 @@ training:
   losses:
     l1: 1.0
     ssim: 0.2
-    lpips: 0.05 # Phase 2: perceptual sharpness; start conservative
-    lpips_net: alex # alex uses ~4x less memory than vgg at inference/backward
+    lpips: 0.05
+    lpips_net: alex
     gaze: 0.1
     id: 0.05
-    flame_reg: 1.0e-4
-    scale_reg: 1.0e-2
-
+    flame_reg: 0.0001
+    scale_reg: 0.01
 data:
   dataset: nersemble
-  root: /mnt/d/GitHub/cv_project/data/nersemble
+  root: ./data/nersemble
   synthetic: false
   num_workers: 0
-  image_size: 518 # must be a multiple of DINOv2 patch-size 14 (37×14=518)
+  image_size: 518
   views_per_frame: 8
