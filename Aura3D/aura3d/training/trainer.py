@@ -45,6 +45,11 @@ class OverfitTrainer:
             n_pose=cfg["model"]["flame"]["n_pose"],
             synthetic=data_cfg.get("synthetic", False),
         )
+        print(
+            f"Dataset: root={data_cfg['root']}  synthetic={self.dataset.synthetic}  "
+            f"samples={len(self.dataset)}",
+            flush=True,
+        )
         self.loader = DataLoader(
             self.dataset,
             batch_size=train_cfg["batch_size"],

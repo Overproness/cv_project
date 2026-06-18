@@ -5,9 +5,9 @@ Usage:
         --config aura3d/configs/aura3d_default.yaml \
         --ckpt-dir runs/stage1
 
-If `data.root` does not exist (e.g. you don't have NeRSemble downloaded
-yet), the dataset auto-falls-back to a synthetic generator with the same
-schema, so this command is also a smoke test.
+Use `--synthetic` for a no-data smoke test. Real training now fails loudly
+when `data.root` is missing, so a bad machine-specific path cannot silently
+train on random images.
 """
 from __future__ import annotations
 
