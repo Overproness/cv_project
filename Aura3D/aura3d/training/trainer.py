@@ -119,6 +119,14 @@ class OverfitTrainer:
         )
         pred = out["rgb"]                         # (3, H, W)
         loss_dict = self.photo(pred, target[0])
+        with torch.no_grad():
+            loss_dict["pred_mean"] = pred.detach().mean()
+            loss_dict["pred_max"] = pred.detach().amax()
+            loss_dict["target_mean"] = target[0].detach().mean()
+            radii = out.get("radii")
+            if radii is not None:
+                loss_dict["visible_gaussians"] = (radii.detach() > 0).sum()
+                loss_dict["radii_max"] = radii.detach().amax()
 
         # Soft penalty on large Gaussian log-scales to prevent explosion.
         # Penalises any log-scale above -3 (real scale > 0.05 m, our renderer cap),
@@ -202,13 +210,24 @@ class OverfitTrainer:
                 lpips_str = (
                     f"  lpips={loss['lpips'].item():.4f}" if "lpips" in loss else ""
                 )
+                render_stats = (
+                    f"  pred_mean={loss['pred_mean'].item():.4f}"
+                    f"  pred_max={loss['pred_max'].item():.4f}"
+                    f"  target_mean={loss['target_mean'].item():.4f}"
+                )
+                if "visible_gaussians" in loss:
+                    render_stats += (
+                        f"  visible={int(loss['visible_gaussians'].item())}"
+                        f"  radii_max={loss['radii_max'].item():.1f}"
+                    )
                 print(
                     f"[step {self.state.step:>6}] "
                     f"total={loss['total'].item():.4f}  "
                     f"l1={loss['l1'].item():.4f}  "
                     f"ssim={loss['ssim'].item():.4f}  "
                     f"scale_reg={loss['scale_reg'].item():.5f}"
-                    f"{lpips_str}",
+                    f"{lpips_str}"
+                    f"{render_stats}",
                     flush=True,
                 )
                 if loss["total"].item() < self.state.best_loss:
